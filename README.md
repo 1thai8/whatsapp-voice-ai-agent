@@ -24,4 +24,4 @@ WhatsApp AI agent with voice transcription, FAQ handling, and appointment bookin
 
 ## Built by
 
-AutoScale AI — AI automation agency for aesthetic and dental clinics.
+Myelon AI — AI automation agency for aesthetic and dental clinics.

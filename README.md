@@ -1,8 +1,14 @@
-# WhatsApp Voice AI Agent
+# WhatsApp Voice AI Agent — Myelon AI
 
-WhatsApp AI agent with voice transcription, FAQ handling, and appointment booking for aesthetic clinics.
+> Conversational AI agent that handles voice messages, FAQs, and appointment booking via WhatsApp — fully automated, 24/7.
 
-## What it does
+## 🎙️ Demo
+
+- [Watch demo (EN)](https://github.com/1thai8/whatsapp-voice-ai-agent/assets/demo-EN.mp4)
+
+---
+
+## ✨ What it does
 
 - Receives WhatsApp messages (text and audio)
 - Transcribes voice messages using Groq Whisper
@@ -10,18 +16,26 @@ WhatsApp AI agent with voice transcription, FAQ handling, and appointment bookin
 - Books, reschedules, and cancels appointments via Google Calendar
 - Replies in any language via Meta Graph API
 
-## Stack
+---
 
-- n8n (workflow automation)
-- Groq (Whisper for transcription + LLaMA for AI responses)
-- Meta WhatsApp Cloud API
-- Google Calendar API
-- Google Sheets (FAQ + CRM)
-
-## Architecture
+## 🏗️ Architecture
 
 ![Architecture](./workflow.png)
 
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Tool |
+|---|---|
+| Automation | n8n (self-hosted) |
+| AI / STT | Groq (Whisper + LLaMA) |
+| Messaging | Meta WhatsApp Cloud API |
+| Calendar | Google Calendar API |
+| CRM / FAQ | Google Sheets |
+
+---
+
 ## Built by
 
-Myelon AI — AI automation agency for aesthetic and dental clinics.
+**Myelon AI** — AI automation agency for aesthetic and dental clinics.

@@ -20,7 +20,7 @@ WhatsApp AI agent with voice transcription, FAQ handling, and appointment bookin
 
 ## Architecture
 
-![Workflow](workflow.png)
+agent.png
 
 ## Built by
 

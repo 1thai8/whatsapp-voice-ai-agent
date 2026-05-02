@@ -1,0 +1,340 @@
+{
+  "name": "Lumina v2 — Agente WhatsApp audio",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lumina-v2",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "094536d8-838b-4807-96e9-eb6f4fef8a68",
+      "name": "WhatsApp Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [-208, -208],
+      "webhookId": "lumina-v2-post"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body;\nconst from = body.From || '';\nconst msgBody = body.Body || '';\nconst mediaUrl = body.MediaUrl0 || null;\nconst mediaType = body.MediaContentType0 || '';\nconst isAudio = mediaType.startsWith('audio');\nreturn [{ json: { from, msgBody, mediaUrl, isAudio } }];"
+      },
+      "id": "8c8a4a15-791f-4172-9e2d-2f8109336988",
+      "name": "Parse Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [48, -208]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "audio-cond",
+              "leftValue": "={{ $json.isAudio }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "da08f771-3c0b-4f74-9fa2-448e5504d54d",
+      "name": "Is Audio?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [272, -208]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.mediaUrl }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          },
+          "timeout": 30000
+        }
+      },
+      "id": "88108352-6297-487a-a8b5-ed855e912a51",
+      "name": "Download Audio",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [496, -224],
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "YOUR_TWILIO_CREDENTIAL_ID",
+          "name": "Twilio"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.twilio.com/2010-04-01/Accounts/YOUR_ACCOUNT_SID/Messages.json",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "From",
+              "value": "whatsapp:+YOUR_TWILIO_NUMBER"
+            },
+            {
+              "name": "To",
+              "value": "={{ $json.from }}"
+            },
+            {
+              "name": "Body",
+              "value": "={{ $json.reply }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "8627053a-40fb-40dc-b82c-98dea8d58982",
+      "name": "Send WhatsApp",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1648, -192],
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "YOUR_TWILIO_CREDENTIAL_ID",
+          "name": "Twilio"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "OK",
+        "options": {}
+      },
+      "id": "d863e202-626a-48c5-b261-df118583223e",
+      "name": "Respond OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1872, -192]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "t3",
+              "name": "userMessage",
+              "value": "={{ $json.msgBody }}",
+              "type": "string"
+            },
+            {
+              "id": "t4",
+              "name": "from",
+              "value": "={{ $json.from }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "2c37c9eb-2be1-4c81-8df0-b79b21abcca1",
+      "name": "📝 Formatar Texto",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [496, -48]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "YOUR_ANTHROPIC_API_KEY"
+            },
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={\n  \"model\": \"claude-haiku-4-5-20251001\",\n  \"max_tokens\": 400,\n  \"system\": \"Eres Luna, recepcionista virtual de Lumina Aesthetics Clinic en Madrid. Respondes siempre en español, de forma amable y concisa. Horario: Lunes-Viernes 9-19h, Sábados 9-14h. Para citas, pide nombre, servicio y fecha.\",\n  \"messages\": [\n    { \"role\": \"user\", \"content\": \"{{ $json.userMessage }}\" }\n  ]\n}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "ad11d99d-c5f0-4718-97fa-b3891f3bf815",
+      "name": "Agent AI",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1168, -208],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "YOUR_CLAUDE_CREDENTIAL_ID",
+          "name": "Claude API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/audio/transcriptions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "data"
+            },
+            {
+              "name": "model",
+              "value": "whisper-large-v3-turbo"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [736, -224],
+      "id": "28f5a454-3e11-4725-85e2-bbe2ea48ec0a",
+      "name": "Transcribe Audio",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "YOUR_GROQ_CREDENTIAL_ID",
+          "name": "Groq"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "t1",
+              "name": "userMessage",
+              "value": "=={{ $json.text ?? $json.body?.text ?? '' }}",
+              "type": "string"
+            },
+            {
+              "id": "t2",
+              "name": "from",
+              "value": "={{ $('Parse Message').item.json.from }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e0f0bbba-d578-4d04-8e41-5e12ef05b72c",
+      "name": "Set Audio Text",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [928, -224]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d8918b6e-9470-4ca0-b140-307021738a71",
+              "name": "reply",
+              "value": "=={{ $json.content[0].text }}",
+              "type": "string"
+            },
+            {
+              "id": "57a70669-0ce8-43e5-85c6-070048fb6a00",
+              "name": "from",
+              "value": "=={{ $('📝 Formatar Texto').isExecuted ? $('📝 Formatar Texto').item.json.from : $('Set Audio Text').item.json.from }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1408, -192],
+      "id": "d0479a32-ae33-4318-8984-ff9df3dfcae9",
+      "name": "Parse Response"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "WhatsApp Webhook": {
+      "main": [[{"node": "Parse Message", "type": "main", "index": 0}]]
+    },
+    "Parse Message": {
+      "main": [[{"node": "Is Audio?", "type": "main", "index": 0}]]
+    },
+    "Is Audio?": {
+      "main": [
+        [{"node": "Download Audio", "type": "main", "index": 0}],
+        [{"node": "📝 Formatar Texto", "type": "main", "index": 0}]
+      ]
+    },
+    "Download Audio": {
+      "main": [[{"node": "Transcribe Audio", "type": "main", "index": 0}]]
+    },
+    "Send WhatsApp": {
+      "main": [[{"node": "Respond OK", "type": "main", "index": 0}]]
+    },
+    "📝 Formatar Texto": {
+      "main": [[{"node": "Agent AI", "type": "main", "index": 0}]]
+    },
+    "Agent AI": {
+      "main": [[{"node": "Parse Response", "type": "main", "index": 0}]]
+    },
+    "Transcribe Audio": {
+      "main": [[{"node": "Set Audio Text", "type": "main", "index": 0}]]
+    },
+    "Set Audio Text": {
+      "main": [[{"node": "Agent AI", "type": "main", "index": 0}]]
+    },
+    "Parse Response": {
+      "main": [[{"node": "Send WhatsApp", "type": "main", "index": 0}]]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "meta": {
+    "instanceId": "YOUR_INSTANCE_ID"
+  },
+  "id": "umdkQwXbNdrlGT7J",
+  "tags": []
+}

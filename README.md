@@ -2,11 +2,7 @@
 
 > Conversational AI agent that handles voice messages, FAQs, and appointment booking via WhatsApp — fully automated, 24/7.
 
-## 🎙️ Demo
-
-- [Watch demo (EN)](https://github.com/1thai8/whatsapp-voice-ai-agent/assets/demo-EN.mp4)
-
----
+--
 
 ## ✨ What it does
 
